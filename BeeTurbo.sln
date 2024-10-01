@@ -1,0 +1,18 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BeeTurbo", "src\BeeTurbo\BeeTurbo.csproj", "{C5D4D4D8-820D-4173-982E-E23FFDD14FA1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D24883E6-EC9D-48F5-9977-AFDC9900EA80}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C5D4D4D8-820D-4173-982E-E23FFDD14FA1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C5D4D4D8-820D-4173-982E-E23FFDD14FA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C5D4D4D8-820D-4173-982E-E23FFDD14FA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C5D4D4D8-820D-4173-982E-E23FFDD14FA1}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
