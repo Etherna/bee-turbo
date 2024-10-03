@@ -1,4 +1,4 @@
-﻿// Copyright 2024-present Etherna SA
+// Copyright 2024-present Etherna SA
 // This file is part of BeeTurbo.
 // 
 // BeeTurbo is free software: you can redistribute it and/or modify it under the terms of the
@@ -12,7 +12,10 @@
 // You should have received a copy of the GNU Affero General Public License along with BeeTurbo.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using System;
+using Etherna.BeeTurbo.Services;
+using Etherna.BeeTurbo.Tools;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Etherna.BeeTurbo
 {
@@ -20,7 +23,38 @@ namespace Etherna.BeeTurbo
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello, World!");
+            var builder = WebApplication.CreateBuilder(args);
+
+            // Configs.
+            ConfigureServices(builder);
+
+            var app = builder.Build();
+            ConfigureApplication(app);
+
+            // Run application.
+            app.Run();
+        }
+        
+        private static void ConfigureServices(WebApplicationBuilder builder)
+        {
+            var services = builder.Services;
+
+            services.AddControllers();
+
+            // Scoped services.
+            services.AddScoped<IChunksControllerService, ChunksControllerService>();
+
+            // Singleton services.
+            services.AddSingleton<IChunkStreamTurboServer, ChunkStreamTurboServer>();
+        }
+
+        private static void ConfigureApplication(WebApplication app)
+        {
+            app.UseHttpsRedirection();
+
+            app.UseRouting();
+            app.MapControllers();
+            app.UseWebSockets();
         }
     }
 }
