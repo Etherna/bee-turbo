@@ -12,15 +12,18 @@
 // You should have received a copy of the GNU Affero General Public License along with BeeTurbo.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.BeeTurbo.Services;
 using Etherna.BeeTurbo.Tools;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Etherna.BeeTurbo
 {
     public static class Program
     {
+        public const string LocalBeeNodeAddress = "http://localhost:8033/";
+        
         static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
@@ -39,22 +42,33 @@ namespace Etherna.BeeTurbo
         {
             var services = builder.Services;
 
-            services.AddControllers();
-
-            // Scoped services.
-            services.AddScoped<IChunksControllerService, ChunksControllerService>();
+            services.AddHttpForwarder();
 
             // Singleton services.
             services.AddSingleton<IChunkStreamTurboServer, ChunkStreamTurboServer>();
         }
 
+        [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope")]
         private static void ConfigureApplication(WebApplication app)
         {
-            app.UseHttpsRedirection();
-
             app.UseRouting();
-            app.MapControllers();
             app.UseWebSockets();
+
+            // Configure endpoint mapping
+            app.Map("/chunks/stream-turbo", async (HttpContext httpContext, IChunkStreamTurboServer chunkStreamTurboServer) =>
+            {
+                if (httpContext.WebSockets.IsWebSocketRequest)
+                {
+                    var webSocket = await httpContext.WebSockets.AcceptWebSocketAsync();
+                    await chunkStreamTurboServer.HandleWebSocketConnection(webSocket);
+                }
+                else
+                {
+                    httpContext.Response.StatusCode = 400;
+                    await httpContext.Response.WriteAsync("Expected a WebSocket request");
+                }
+            });
+            app.MapForwarder("/{**catch-all}", LocalBeeNodeAddress);
         }
     }
 }
