@@ -22,7 +22,7 @@ namespace Etherna.BeeTurbo
 {
     public static class Program
     {
-        public const string LocalBeeNodeAddress = "http://localhost:8033/";
+        public const string LocalBeeNodeAddress = "http://localhost:1633/";
         
         static void Main(string[] args)
         {

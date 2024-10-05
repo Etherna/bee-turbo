@@ -1,42 +1,44 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
-    <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
-        <Nullable>enable</Nullable>
-        <RootNamespace>Etherna.BeeTurbo</RootNamespace>
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Etherna.BeeTurbo</RootNamespace>
 
-        <Authors>Etherna SA</Authors>
-        <Description>Middleware to optimize Bee's performance</Description>
+    <Authors>Etherna SA</Authors>
+    <Description>Middleware to optimize Bee's performance</Description>
 
-        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-        <Nullable>enable</Nullable>
-        <EnableNETAnalyzers>true</EnableNETAnalyzers>
-        <AnalysisMode>AllEnabledByDefault</AnalysisMode>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Nullable>enable</Nullable>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisMode>AllEnabledByDefault</AnalysisMode>
 
-        <InvariantGlobalization>true</InvariantGlobalization>
+    <InvariantGlobalization>true</InvariantGlobalization>
 
-        <RepositoryUrl>https://github.com/Etherna/bee-turbo</RepositoryUrl>
-        <RepositoryType>git</RepositoryType>
-        <PublishRepositoryUrl>true</PublishRepositoryUrl>
-        <PackageLicenseFile>COPYING</PackageLicenseFile>
-    </PropertyGroup>
+    <RepositoryUrl>https://github.com/Etherna/bee-turbo</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <PackageLicenseFile>COPYING</PackageLicenseFile>
+    
+    <WarningsNotAsErrors>NU1901;NU1902;NU1903;NU1904</WarningsNotAsErrors>
+  </PropertyGroup>
 
-    <ItemGroup>
-        <PackageReference Include="Bee.Net.Client" Version="0.4.0-alpha.42" />
-        <PackageReference Include="GitVersion.MsBuild" Version="6.0.2">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
-        <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
-        <PackageReference Include="Yarp.ReverseProxy" Version="2.2.0" />
-    </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Bee.Net.Client" Version="0.4.0-alpha.42" />
+    <PackageReference Include="GitVersion.MsBuild" Version="6.0.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Yarp.ReverseProxy" Version="2.2.0" />
+  </ItemGroup>
 
-    <ItemGroup>
-        <None Include="..\..\COPYING" />
-        <None Include="..\..\README.md" />
-    </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\COPYING" />
+    <None Include="..\..\README.md" />
+  </ItemGroup>
 
 </Project>
