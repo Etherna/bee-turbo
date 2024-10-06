@@ -12,13 +12,17 @@
 // You should have received a copy of the GNU Affero General Public License along with BeeTurbo.
 // If not, see <https://www.gnu.org/licenses/>.
 
+using Etherna.BeeNet.Models;
 using System.Net.WebSockets;
 using System.Threading.Tasks;
 
 namespace Etherna.BeeTurbo.Tools
 {
-    public interface IChunkStreamTurboServer
+    public interface IChunkStreamTurboProcessor
     {
-        Task HandleWebSocketConnection(WebSocket webSocket);
+        Task HandleWebSocketConnection(
+            PostageBatchId batchId,
+            TagId? tagId,
+            WebSocket clientWebsocket);
     }
 }

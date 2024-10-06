@@ -12,10 +12,12 @@
 // You should have received a copy of the GNU Affero General Public License along with BeeTurbo.
 // If not, see <https://www.gnu.org/licenses/>.
 
+using Etherna.BeeNet.Models;
 using Etherna.BeeTurbo.Tools;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Etherna.BeeTurbo
@@ -45,22 +47,33 @@ namespace Etherna.BeeTurbo
             services.AddHttpForwarder();
 
             // Singleton services.
-            services.AddSingleton<IChunkStreamTurboServer, ChunkStreamTurboServer>();
+            services.AddSingleton<IChunkStreamTurboProcessor, ChunkStreamTurboProcessor>();
         }
 
         [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope")]
         private static void ConfigureApplication(WebApplication app)
         {
             app.UseRouting();
-            app.UseWebSockets();
+            app.UseWebSockets(new WebSocketOptions
+            {
+                KeepAliveInterval = TimeSpan.FromMinutes(10)
+            });
 
             // Configure endpoint mapping
-            app.Map("/chunks/stream-turbo", async (HttpContext httpContext, IChunkStreamTurboServer chunkStreamTurboServer) =>
+            app.Map("/chunks/stream-turbo", async (HttpContext httpContext, IChunkStreamTurboProcessor processer) =>
             {
                 if (httpContext.WebSockets.IsWebSocketRequest)
                 {
+                    // Get headers.
+                    //TODO
+                    
+                    // Get websocket.
                     var webSocket = await httpContext.WebSockets.AcceptWebSocketAsync();
-                    await chunkStreamTurboServer.HandleWebSocketConnection(webSocket);
+                    
+                    await processer.HandleWebSocketConnection(
+                        PostageBatchId.Zero,
+                        null,
+                        webSocket);
                 }
                 else
                 {
