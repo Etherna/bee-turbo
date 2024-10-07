@@ -2,7 +2,7 @@
 
 ## Overview
 
-Middleware to optimize Bee's performance
+Reverse proxy to optimize Bee's performance
 
 ## Issue reports
 If you've discovered a bug, or have an idea for a new feature, please report it to our issue manager based on Jira https://etherna.atlassian.net/projects/BEET.

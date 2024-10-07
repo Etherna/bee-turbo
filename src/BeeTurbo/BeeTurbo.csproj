@@ -6,7 +6,7 @@
     <RootNamespace>Etherna.BeeTurbo</RootNamespace>
 
     <Authors>Etherna SA</Authors>
-    <Description>Middleware to optimize Bee's performance</Description>
+    <Description>Reverse proxy to optimize Bee's performance</Description>
 
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Nullable>enable</Nullable>
