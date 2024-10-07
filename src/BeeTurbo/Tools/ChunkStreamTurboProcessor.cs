@@ -14,6 +14,7 @@
 
 using Etherna.BeeNet;
 using Etherna.BeeNet.Models;
+using Etherna.BeeNet.Tools;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -87,7 +88,7 @@ namespace Etherna.BeeTurbo.Tools
         /// <param name="beeWebsocket">The websocket opened with bee instance</param>
         /// <param name="dataQueue">Data received from client</param>
         /// <returns>True if the protocol is completed, false otherwise</returns>
-        private async Task ProcessDataAsync(ChunkUploaderWebSocket beeWebsocket, Queue<byte> dataQueue)
+        private async Task ProcessDataAsync(IChunkWebSocketUploader beeWebsocket, Queue<byte> dataQueue)
         {
             while (dataQueue.Count > 0)
             {

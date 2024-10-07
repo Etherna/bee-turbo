@@ -22,7 +22,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Bee.Net.Client" Version="0.4.0-alpha.52" />
+    <PackageReference Include="Bee.Net.Client" Version="0.4.0-alpha.53" />
     <PackageReference Include="GitVersion.MsBuild" Version="6.0.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
