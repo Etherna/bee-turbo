@@ -1,0 +1,21 @@
+# To learn more about .editorconfig see https://aka.ms/editorconfigdocs
+# Remove the line below if you want to inherit .editorconfig settings from higher directories
+root = true
+
+#### Define style ####
+
+# All files
+[*]
+indent_style = space
+
+# C# Project, JS and CSS files
+[*.{csproj,js,ts,css,scss}]
+indent_size = 2
+
+#### Suppress warnings ####
+
+# C# files
+[*.cs]
+
+# CA2007: Consider calling ConfigureAwait on the awaited task
+dotnet_diagnostic.CA2007.severity = none    # Not needed with .Net Core. More info https://devblogs.microsoft.com/dotnet/configureawait-faq/
