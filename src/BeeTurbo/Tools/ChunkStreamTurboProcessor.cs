@@ -31,8 +31,6 @@ namespace Etherna.BeeTurbo.Tools
         
         // Fields.
         private ushort? nextChunkSize;
-        private ushort receivedChunks;
-        private ushort? totalChunks;
 
         // Methods.
         [SuppressMessage("Design", "CA1031:Do not catch general exception types")]
@@ -55,11 +53,12 @@ namespace Etherna.BeeTurbo.Tools
                 while (clientWebsocket.State == WebSocketState.Open)
                 {
                     // Receive data.
-                    await ReceiveDataAsync(clientWebsocket, internalBuffer, receivedDataQueue);
+                    var isLastBatch = await ReceiveDataAsync(clientWebsocket, internalBuffer, receivedDataQueue);
 
                     // Process data.
-                    var isCompleted = await ProcessDataAsync(beeWebsocket, receivedDataQueue);
-                    if (isCompleted)
+                    await ProcessDataAsync(beeWebsocket, receivedDataQueue);
+                    
+                    if (isLastBatch)
                         await clientWebsocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", default);
                 }
             }
@@ -88,19 +87,10 @@ namespace Etherna.BeeTurbo.Tools
         /// <param name="beeWebsocket">The websocket opened with bee instance</param>
         /// <param name="dataQueue">Data received from client</param>
         /// <returns>True if the protocol is completed, false otherwise</returns>
-        private async Task<bool> ProcessDataAsync(ChunkUploaderWebSocket beeWebsocket, Queue<byte> dataQueue)
+        private async Task ProcessDataAsync(ChunkUploaderWebSocket beeWebsocket, Queue<byte> dataQueue)
         {
-            while (dataQueue.Count > 0 &&
-                   receivedChunks != totalChunks)
+            while (dataQueue.Count > 0)
             {
-                //read chunks amount
-                if (!totalChunks.HasValue)
-                {
-                    if (TryReadUshort(dataQueue, out var totChunks))
-                        totalChunks = totChunks;
-                    else break;
-                }
-                
                 //read next chunk size
                 if (!nextChunkSize.HasValue)
                 {
@@ -118,15 +108,12 @@ namespace Etherna.BeeTurbo.Tools
                 {
                     await beeWebsocket.SendChunkAsync(chunkPayload, CancellationToken.None);
                     nextChunkSize = null;
-                    receivedChunks++;
                 }
                 else break;
             }
-            
-            return receivedChunks == totalChunks;
         }
 
-        private static async Task ReceiveDataAsync(WebSocket webSocket, byte[] wsBuffer, Queue<byte> dataQueue)
+        private static async Task<bool> ReceiveDataAsync(WebSocket webSocket, byte[] wsBuffer, Queue<byte> dataQueue)
         {
             var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(wsBuffer), CancellationToken.None);
             switch (result.MessageType)
@@ -143,6 +130,8 @@ namespace Etherna.BeeTurbo.Tools
 
             for (int i = 0; i < result.Count; i++)
                 dataQueue.Enqueue(wsBuffer[i]);
+
+            return result.EndOfMessage;
         }
 
         private static bool TryReadByteArray(Queue<byte> dataQueue, int dataSize, out byte[] value)
