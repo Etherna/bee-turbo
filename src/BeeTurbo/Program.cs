@@ -12,6 +12,7 @@
 // You should have received a copy of the GNU Affero General Public License along with BeeTurbo.
 // If not, see <https://www.gnu.org/licenses/>.
 
+using Etherna.BeeNet;
 using Etherna.BeeNet.Models;
 using Etherna.BeeTurbo.Tools;
 using Microsoft.AspNetCore.Builder;
@@ -19,6 +20,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
 namespace Etherna.BeeTurbo
 {
@@ -47,6 +49,7 @@ namespace Etherna.BeeTurbo
             services.AddHttpForwarder();
 
             // Singleton services.
+            services.AddSingleton<IBeeClient>(_ => new BeeClient(new Uri(LocalBeeNodeAddress, UriKind.Absolute)));
             services.AddSingleton<IChunkStreamTurboProcessor, ChunkStreamTurboProcessor>();
         }
 
@@ -65,14 +68,18 @@ namespace Etherna.BeeTurbo
                 if (httpContext.WebSockets.IsWebSocketRequest)
                 {
                     // Get headers.
-                    //TODO
+                    httpContext.Request.Headers.TryGetValue(SwarmHttpConsts.SwarmPostageBatchId, out var batchIdHeaderValue);
+                    httpContext.Request.Headers.TryGetValue(SwarmHttpConsts.SwarmTag, out var tagIdHeaderValue);
+                    var batchId = PostageBatchId.FromString(batchIdHeaderValue.Single()!);
+                    var tagIdStr = tagIdHeaderValue.SingleOrDefault();
+                    TagId? tagId = tagIdStr is null ? null : new TagId(ulong.Parse(tagIdStr));
                     
                     // Get websocket.
                     var webSocket = await httpContext.WebSockets.AcceptWebSocketAsync();
                     
                     await processer.HandleWebSocketConnection(
-                        PostageBatchId.Zero,
-                        null,
+                        batchId,
+                        tagId,
                         webSocket);
                 }
                 else
