@@ -11,6 +11,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BeeTurbo", "src\BeeTurbo\Be
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{BC8B908F-0A65-4E3D-BD12-1F38C87BBC43}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{8AC33738-1D77-4D8C-AF20-2BB2FA69D024}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\unstable-release.yml = .github\workflows\unstable-release.yml
+		.github\workflows\stable-release.yml = .github\workflows\stable-release.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +30,6 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{41265068-0289-4718-A0C0-7BE6D0E7EC34} = {BC8B908F-0A65-4E3D-BD12-1F38C87BBC43}
+		{8AC33738-1D77-4D8C-AF20-2BB2FA69D024} = {D24883E6-EC9D-48F5-9977-AFDC9900EA80}
 	EndGlobalSection
 EndGlobal
