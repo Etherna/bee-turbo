@@ -26,35 +26,37 @@ namespace Etherna.BeeTurbo
 {
     public static class Program
     {
-        public const string LocalBeeNodeAddress = "http://localhost:1633/";
-        
         static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            
+            // Get config.
+            var beeUrl = builder.Configuration["BeeUrl"] ??
+                         throw new ArgumentException("BeeUrl is not defined");
 
             // Configs.
-            ConfigureServices(builder);
+            ConfigureServices(builder, beeUrl);
 
             var app = builder.Build();
-            ConfigureApplication(app);
+            ConfigureApplication(app, beeUrl);
 
             // Run application.
             app.Run();
         }
         
-        private static void ConfigureServices(WebApplicationBuilder builder)
+        private static void ConfigureServices(WebApplicationBuilder builder, string beeUrl)
         {
             var services = builder.Services;
 
             services.AddHttpForwarder();
 
             // Singleton services.
-            services.AddSingleton<IBeeClient>(_ => new BeeClient(new Uri(LocalBeeNodeAddress, UriKind.Absolute)));
+            services.AddSingleton<IBeeClient>(_ => new BeeClient(new Uri(beeUrl, UriKind.Absolute)));
             services.AddSingleton<IChunkStreamTurboProcessor, ChunkStreamTurboProcessor>();
         }
 
         [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope")]
-        private static void ConfigureApplication(WebApplication app)
+        private static void ConfigureApplication(WebApplication app, string beeUrl)
         {
             app.UseRouting();
             app.UseWebSockets(new WebSocketOptions
@@ -88,7 +90,7 @@ namespace Etherna.BeeTurbo
                     await httpContext.Response.WriteAsync("Expected a WebSocket request");
                 }
             });
-            app.MapForwarder("/{**catch-all}", LocalBeeNodeAddress);
+            app.MapForwarder("/{**catch-all}", beeUrl);
         }
     }
 }
