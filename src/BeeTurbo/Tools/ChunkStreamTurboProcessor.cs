@@ -14,10 +14,10 @@
 
 using Etherna.BeeNet;
 using Etherna.BeeNet.Models;
-using Etherna.BeeNet.Tools;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -42,9 +42,12 @@ namespace Etherna.BeeTurbo.Tools
         {
             ArgumentNullException.ThrowIfNull(clientWebsocket, nameof(clientWebsocket));
             
-            // Open websocket with Bee.
-            using var beeWebsocket = await beeClient.GetChunkUploaderWebSocketAsync(
-                batchId, tagId, CancellationToken.None);
+            /*
+             * Use http instead of websocket as workaround for https://github.com/ethersphere/bee/issues/4858
+             */
+            // // Open websocket with Bee.
+            // using var beeWebsocket = await beeClient.GetChunkUploaderWebSocketAsync(
+            //     batchId, tagId, CancellationToken.None);
 
             // Consume data from client and push to Bee.
             var internalBuffer = new byte[WebsocketInternalBufferSize];
@@ -57,7 +60,8 @@ namespace Etherna.BeeTurbo.Tools
                     var isLastBatch = await ReceiveDataAsync(clientWebsocket, internalBuffer, receivedDataQueue);
 
                     // Process data.
-                    await ProcessDataAsync(beeWebsocket, receivedDataQueue);
+                    // await ProcessDataAsync(beeWebsocket, receivedDataQueue);
+                    await ProcessDataAsync(batchId, tagId, receivedDataQueue);
                     
                     if (isLastBatch)
                         await clientWebsocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", default);
@@ -75,20 +79,51 @@ namespace Etherna.BeeTurbo.Tools
                         break;
                 }
             }
-            finally
-            {
-                await beeWebsocket.CloseAsync();
-            }
+            // finally
+            // {
+            //     await beeWebsocket.CloseAsync();
+            // }
         }
 
         // Helpers.
+        // /// <summary>
+        // /// Consume data from client and feed Bee with it
+        // /// </summary>
+        // /// <param name="beeWebsocket">The websocket opened with bee instance</param>
+        // /// <param name="dataQueue">Data received from client</param>
+        // /// <returns>True if the protocol is completed, false otherwise</returns>
+        // private async Task ProcessDataAsync(IChunkWebSocketUploader beeWebsocket, Queue<byte> dataQueue)
+        // {
+        //     while (dataQueue.Count > 0)
+        //     {
+        //         //read next chunk size
+        //         if (!nextChunkSize.HasValue)
+        //         {
+        //             if (TryReadUshort(dataQueue, out var ncs))
+        //             {
+        //                 if (ncs > SwarmChunk.SpanAndDataSize)
+        //                     throw new InvalidOperationException();
+        //                 nextChunkSize = ncs;
+        //             }
+        //             else break;
+        //         }
+        //
+        //         //read chunk payload
+        //         if (TryReadByteArray(dataQueue, nextChunkSize.Value, out var chunkPayload))
+        //         {
+        //             await beeWebsocket.SendChunkAsync(chunkPayload, CancellationToken.None);
+        //             nextChunkSize = null;
+        //         }
+        //         else break;
+        //     }
+        // }
+        
         /// <summary>
         /// Consume data from client and feed Bee with it
         /// </summary>
-        /// <param name="beeWebsocket">The websocket opened with bee instance</param>
         /// <param name="dataQueue">Data received from client</param>
         /// <returns>True if the protocol is completed, false otherwise</returns>
-        private async Task ProcessDataAsync(IChunkWebSocketUploader beeWebsocket, Queue<byte> dataQueue)
+        private async Task ProcessDataAsync(PostageBatchId batchId, TagId? tagId, Queue<byte> dataQueue)
         {
             while (dataQueue.Count > 0)
             {
@@ -107,7 +142,9 @@ namespace Etherna.BeeTurbo.Tools
                 //read chunk payload
                 if (TryReadByteArray(dataQueue, nextChunkSize.Value, out var chunkPayload))
                 {
-                    await beeWebsocket.SendChunkAsync(chunkPayload, CancellationToken.None);
+                    using var memoryStream = new MemoryStream(chunkPayload);
+                    memoryStream.Position = 0;
+                    await beeClient.UploadChunkAsync(batchId, memoryStream, tagId: tagId);
                     nextChunkSize = null;
                 }
                 else break;
