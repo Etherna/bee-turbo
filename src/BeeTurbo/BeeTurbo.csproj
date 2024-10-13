@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <Nullable>enable</Nullable>
     <RootNamespace>Etherna.BeeTurbo</RootNamespace>
 
     <Authors>Etherna SA</Authors>
@@ -22,7 +21,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Bee.Net.Client" Version="0.4.0-alpha.53" />
+    <PackageReference Include="Bee.Net.Client" Version="0.4.0-alpha.59" />
     <PackageReference Include="GitVersion.MsBuild" Version="6.0.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -31,6 +30,8 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="MongODM" Version="0.24.0" />
+    <PackageReference Include="MongODM.AspNetCore.UI" Version="0.24.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
     <PackageReference Include="Serilog.Enrichers.Environment" Version="3.0.1" />
     <PackageReference Include="Serilog.Exceptions" Version="8.4.0" />
@@ -41,6 +42,10 @@
   <ItemGroup>
     <None Include="..\..\COPYING" />
     <None Include="..\..\README.md" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BeeTurbo.Persistence\BeeTurbo.Persistence.csproj" />
   </ItemGroup>
 
 </Project>

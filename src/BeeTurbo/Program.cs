@@ -14,7 +14,13 @@
 
 using Etherna.BeeNet;
 using Etherna.BeeNet.Models;
+using Etherna.BeeTurbo.Domain;
+using Etherna.BeeTurbo.Persistence;
 using Etherna.BeeTurbo.Tools;
+using Etherna.MongODM;
+using Hangfire.Mongo;
+using Hangfire.Mongo.Migration.Strategies;
+using Hangfire.Mongo.Migration.Strategies.Backup;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -104,8 +110,30 @@ namespace Etherna.BeeTurbo
         private static void ConfigureServices(WebApplicationBuilder builder, string beeUrl)
         {
             var services = builder.Services;
+            var config = builder.Configuration;
 
             services.AddHttpForwarder();
+            
+            // Configure persistence.
+            services.AddMongODMWithHangfire(configureHangfireOptions: options =>
+                {
+                    options.ConnectionString = config["ConnectionStrings:HangfireDb"] ??
+                                               throw new ArgumentException("Hangfire connection string is not defined");
+                    options.StorageOptions = new MongoStorageOptions
+                    {
+                        MigrationOptions = new MongoMigrationOptions //don't remove, could throw exception
+                        {
+                            MigrationStrategy = new MigrateMongoMigrationStrategy(),
+                            BackupStrategy = new CollectionMongoBackupStrategy()
+                        }
+                    };
+                })
+                .AddDbContext<IChunkDbContext, ChunkDbContext>(_ => new ChunkDbContext(),
+                    options =>
+                    {
+                        options.ConnectionString = config["ConnectionStrings:ChunkDb"] ??
+                                                   throw new ArgumentException("ChunkCacheDb connection string is not defined");
+                    });
 
             // Singleton services.
             services.AddSingleton<IBeeClient>(_ => new BeeClient(new Uri(beeUrl, UriKind.Absolute)));
