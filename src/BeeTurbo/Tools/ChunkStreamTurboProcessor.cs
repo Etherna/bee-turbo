@@ -144,7 +144,11 @@ namespace Etherna.BeeTurbo.Tools
                 {
                     using var memoryStream = new MemoryStream(chunkPayload);
                     memoryStream.Position = 0;
-                    await beeClient.UploadChunkAsync(batchId, memoryStream, tagId: tagId);
+                    await beeClient.UploadChunkAsync(
+                        batchId,
+                        memoryStream,
+                        swarmPin: true, //pin all chunks as workaround
+                        tagId: tagId);
                     nextChunkSize = null;
                 }
                 else break;
