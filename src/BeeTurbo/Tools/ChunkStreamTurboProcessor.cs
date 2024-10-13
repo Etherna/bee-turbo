@@ -16,6 +16,7 @@ using Etherna.BeeNet.Hashing;
 using Etherna.BeeNet.Hashing.Bmt;
 using Etherna.BeeNet.Models;
 using Etherna.BeeTurbo.Domain;
+using Etherna.BeeTurbo.Domain.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -155,15 +156,17 @@ namespace Etherna.BeeTurbo.Tools
                     else break;
                 }
 
-                //read chunk payload
+                //read and store chunk payload
                 if (TryReadByteArray(dataQueue, nextChunkSize.Value, out var chunkPayload))
                 {
                     var hash = SwarmChunkBmtHasher.Hash(
                         chunkPayload[..SwarmChunk.SpanSize].ToArray(),
                         chunkPayload[SwarmChunk.SpanSize..].ToArray(),
                         hasher);
+                    var chunkRef = new UploadedChunkRef(hash, batchId);
 
                     await chunkDbContext.ChunksBucket.UploadFromBytesAsync(hash.ToString(), chunkPayload);
+                    await chunkDbContext.ChunkPushQueue.CreateAsync(chunkRef);
                     
                     nextChunkSize = null;
                 }

@@ -13,15 +13,17 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Etherna.BeeTurbo.Domain.Models;
-using Etherna.MongoDB.Driver.GridFS;
 using Etherna.MongODM.Core;
-using Etherna.MongODM.Core.Repositories;
+using Etherna.MongODM.Core.Serialization;
 
-namespace Etherna.BeeTurbo.Domain
+namespace Etherna.BeeTurbo.Persistence.ModelMaps
 {
-    public interface IChunkDbContext : IDbContext
+    internal sealed class UploadedChunkRefMap : IModelMapsCollector
     {
-        public IRepository<UploadedChunkRef, string> ChunkPushQueue { get; }
-        public GridFSBucket ChunksBucket { get; }
+        public void Register(IDbContext dbContext)
+        {
+            dbContext.MapRegistry.AddModelMap<UploadedChunkRef>(
+                "30e3473f-5d56-4821-9c66-aa8922b46942"); //v0.2.0
+        }
     }
 }

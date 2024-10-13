@@ -12,16 +12,15 @@
 // You should have received a copy of the GNU Affero General Public License along with BeeTurbo.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.BeeTurbo.Domain.Models;
-using Etherna.MongoDB.Driver.GridFS;
-using Etherna.MongODM.Core;
-using Etherna.MongODM.Core.Repositories;
+using Etherna.MongODM.Core.Domain.Models;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
-namespace Etherna.BeeTurbo.Domain
+namespace Etherna.BeeTurbo.Domain.Models
 {
-    public interface IChunkDbContext : IDbContext
+    public abstract class ModelBase : IModel
     {
-        public IRepository<UploadedChunkRef, string> ChunkPushQueue { get; }
-        public GridFSBucket ChunksBucket { get; }
+        [SuppressMessage("Usage", "CA2227:Collection properties should be read only", Justification = "Setter needed for deserialization scope")]
+        public virtual IDictionary<string, object>? ExtraElements { get; protected set; }
     }
 }

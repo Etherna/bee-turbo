@@ -13,20 +13,31 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Etherna.BeeTurbo.Domain;
+using Etherna.BeeTurbo.Domain.Models;
 using Etherna.MongoDB.Driver;
 using Etherna.MongoDB.Driver.GridFS;
 using Etherna.MongODM.Core;
+using Etherna.MongODM.Core.Repositories;
 using Etherna.MongODM.Core.Serialization;
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 
 namespace Etherna.BeeTurbo.Persistence
 {
     public class ChunkDbContext : DbContext, IChunkDbContext
     {
+        // Consts.
+        private const string ModelMapsNamespace = "Etherna.BeeTurbo.Persistence.ModelMaps";
+        
+        // Fields.
         private GridFSBucket? _chunksBucket;
         
-        protected override IEnumerable<IModelMapsCollector> ModelMapsCollectors => [];
-
+        // Properties.
+        //repositories
+        public IRepository<UploadedChunkRef, string> ChunkPushQueue { get; } =
+            new Repository<UploadedChunkRef, string>("chunkPushQueue");
         public GridFSBucket ChunksBucket
         {
             get
@@ -41,5 +52,12 @@ namespace Etherna.BeeTurbo.Persistence
                 return _chunksBucket;
             }
         }
+        
+        //other properties
+        protected override IEnumerable<IModelMapsCollector> ModelMapsCollectors =>
+            from t in typeof(ChunkDbContext).GetTypeInfo().Assembly.GetTypes()
+            where t.IsClass && t.Namespace == ModelMapsNamespace
+            where t.GetInterfaces().Contains(typeof(IModelMapsCollector))
+            select Activator.CreateInstance(t) as IModelMapsCollector;
     }
 }
