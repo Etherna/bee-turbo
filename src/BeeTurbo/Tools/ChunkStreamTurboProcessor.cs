@@ -12,13 +12,14 @@
 // You should have received a copy of the GNU Affero General Public License along with BeeTurbo.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.BeeNet;
+using Etherna.BeeNet.Hashing;
+using Etherna.BeeNet.Hashing.Bmt;
 using Etherna.BeeNet.Models;
-using Etherna.BeeTurbo.Persistence.Services;
+using Etherna.BeeTurbo.Domain;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
+using System.Linq;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,8 +27,8 @@ using System.Threading.Tasks;
 namespace Etherna.BeeTurbo.Tools
 {
     public class ChunkStreamTurboProcessor(
-        IBeeClient beeClient,
-        IChunkCacheService chunkCacheService)
+        // IBeeClient beeClient,
+        IChunkDbContext chunkDbContext)
         : IChunkStreamTurboProcessor
     {
         // Consts.
@@ -55,6 +56,7 @@ namespace Etherna.BeeTurbo.Tools
             // Consume data from client and push to Bee.
             var internalBuffer = new byte[WebsocketInternalBufferSize];
             var receivedDataQueue = new Queue<byte>();
+            var hasher = new Hasher();
             try
             {
                 while (clientWebsocket.State == WebSocketState.Open)
@@ -62,12 +64,19 @@ namespace Etherna.BeeTurbo.Tools
                     // Receive data.
                     var isLastBatch = await ReceiveDataAsync(clientWebsocket, internalBuffer, receivedDataQueue);
 
-                    // Process data.
-                    // await ProcessDataAsync(beeWebsocket, receivedDataQueue);
-                    await ProcessDataAsync(batchId, tagId, receivedDataQueue);
-                    
-                    if (isLastBatch)
+                    if (!isLastBatch)
+                    {
+                        // Process data.
+                        // await ProcessDataAsync(beeWebsocket, receivedDataQueue);
+                        await ProcessDataAsync(batchId, tagId, receivedDataQueue, hasher);
+
+                        var ackBytes = "ack"u8.ToArray();
+                        await clientWebsocket.SendAsync(ackBytes, WebSocketMessageType.Binary, false, CancellationToken.None);
+                    }
+                    else
+                    {
                         await clientWebsocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", default);
+                    }
                 }
             }
             catch (Exception ex)
@@ -126,7 +135,11 @@ namespace Etherna.BeeTurbo.Tools
         /// </summary>
         /// <param name="dataQueue">Data received from client</param>
         /// <returns>True if the protocol is completed, false otherwise</returns>
-        private async Task ProcessDataAsync(PostageBatchId batchId, TagId? tagId, Queue<byte> dataQueue)
+        private async Task ProcessDataAsync(
+            PostageBatchId batchId,
+            TagId? tagId,
+            Queue<byte> dataQueue,
+            IHasher hasher)
         {
             while (dataQueue.Count > 0)
             {
@@ -145,16 +158,13 @@ namespace Etherna.BeeTurbo.Tools
                 //read chunk payload
                 if (TryReadByteArray(dataQueue, nextChunkSize.Value, out var chunkPayload))
                 {
-                    var chunk = SwarmChunk.BuildFromSpanAndData(chunkPayload);
+                    var hash = SwarmChunkBmtHasher.Hash(
+                        chunkPayload[..SwarmChunk.SpanSize].ToArray(),
+                        chunkPayload[SwarmChunk.SpanSize..].ToArray(),
+                        hasher);
+
+                    await chunkDbContext.ChunksBucket.UploadFromBytesAsync(hash.ToString(), chunkPayload);
                     
-                    using var memoryStream = new MemoryStream(chunkPayload);
-                    memoryStream.Position = 0;
-                    
-                    
-                    
-                    chunkCacheService.ChunksBucket.
-                    
-                    await beeClient.UploadChunkAsync(batchId, memoryStream, tagId: tagId);
                     nextChunkSize = null;
                 }
                 else break;

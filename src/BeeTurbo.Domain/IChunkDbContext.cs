@@ -12,11 +12,13 @@
 // You should have received a copy of the GNU Affero General Public License along with BeeTurbo.
 // If not, see <https://www.gnu.org/licenses/>.
 
-namespace Etherna.BeeTurbo.Persistence.Options
+using Etherna.MongoDB.Driver.GridFS;
+using Etherna.MongODM.Core;
+
+namespace Etherna.BeeTurbo.Domain
 {
-    public class ChunkCacheServiceOptions
+    public interface IChunkDbContext : IDbContext
     {
-        public string ConnectionString { get; set; } = default!;
-        public string DbName { get; set; } = default!;
+        public GridFSBucket ChunksBucket { get; }
     }
 }

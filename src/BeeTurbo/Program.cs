@@ -14,9 +14,13 @@
 
 using Etherna.BeeNet;
 using Etherna.BeeNet.Models;
-using Etherna.BeeTurbo.Persistence.Options;
-using Etherna.BeeTurbo.Persistence.Services;
+using Etherna.BeeTurbo.Domain;
+using Etherna.BeeTurbo.Persistence;
 using Etherna.BeeTurbo.Tools;
+using Etherna.MongODM;
+using Hangfire.Mongo;
+using Hangfire.Mongo.Migration.Strategies;
+using Hangfire.Mongo.Migration.Strategies.Backup;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -110,17 +114,29 @@ namespace Etherna.BeeTurbo
 
             services.AddHttpForwarder();
             
-            // Configurations.
-            services.Configure<ChunkCacheServiceOptions>(options =>
-            {
-                options.ConnectionString = config["ConnectionStrings:ChunkCacheDb"] ??
-                                           throw new ArgumentException("ChunkCacheDb connection string is not defined");
-                options.DbName = "ChunkCacheDb";
-            });
+            // Configure persistence.
+            services.AddMongODMWithHangfire(configureHangfireOptions: options =>
+                {
+                    options.ConnectionString = config["ConnectionStrings:HangfireDb"] ??
+                                               throw new ArgumentException("Hangfire connection string is not defined");
+                    options.StorageOptions = new MongoStorageOptions
+                    {
+                        MigrationOptions = new MongoMigrationOptions //don't remove, could throw exception
+                        {
+                            MigrationStrategy = new MigrateMongoMigrationStrategy(),
+                            BackupStrategy = new CollectionMongoBackupStrategy()
+                        }
+                    };
+                })
+                .AddDbContext<IChunkDbContext, ChunkDbContext>(_ => new ChunkDbContext(),
+                    options =>
+                    {
+                        options.ConnectionString = config["ConnectionStrings:ChunkDb"] ??
+                                                   throw new ArgumentException("ChunkCacheDb connection string is not defined");
+                    });
 
             // Singleton services.
             services.AddSingleton<IBeeClient>(_ => new BeeClient(new Uri(beeUrl, UriKind.Absolute)));
-            services.AddSingleton<IChunkCacheService, ChunkCacheService>();
             services.AddSingleton<IChunkStreamTurboProcessor, ChunkStreamTurboProcessor>();
         }
 
