@@ -14,6 +14,8 @@
 
 using Etherna.BeeNet;
 using Etherna.BeeNet.Models;
+using Etherna.BeeTurbo.Persistence.Options;
+using Etherna.BeeTurbo.Persistence.Services;
 using Etherna.BeeTurbo.Tools;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -104,11 +106,21 @@ namespace Etherna.BeeTurbo
         private static void ConfigureServices(WebApplicationBuilder builder, string beeUrl)
         {
             var services = builder.Services;
+            var config = builder.Configuration;
 
             services.AddHttpForwarder();
+            
+            // Configurations.
+            services.Configure<ChunkCacheServiceOptions>(options =>
+            {
+                options.ConnectionString = config["ConnectionStrings:ChunkCacheDb"] ??
+                                           throw new ArgumentException("ChunkCacheDb connection string is not defined");
+                options.DbName = "ChunkCacheDb";
+            });
 
             // Singleton services.
             services.AddSingleton<IBeeClient>(_ => new BeeClient(new Uri(beeUrl, UriKind.Absolute)));
+            services.AddSingleton<IChunkCacheService, ChunkCacheService>();
             services.AddSingleton<IChunkStreamTurboProcessor, ChunkStreamTurboProcessor>();
         }
 

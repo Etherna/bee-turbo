@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <Nullable>enable</Nullable>
     <RootNamespace>Etherna.BeeTurbo</RootNamespace>
 
     <Authors>Etherna SA</Authors>
@@ -41,6 +40,10 @@
   <ItemGroup>
     <None Include="..\..\COPYING" />
     <None Include="..\..\README.md" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BeeTurbo.Persistence\BeeTurbo.Persistence.csproj" />
   </ItemGroup>
 
 </Project>

@@ -14,6 +14,7 @@
 
 using Etherna.BeeNet;
 using Etherna.BeeNet.Models;
+using Etherna.BeeTurbo.Persistence.Services;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -25,7 +26,9 @@ using System.Threading.Tasks;
 namespace Etherna.BeeTurbo.Tools
 {
     public class ChunkStreamTurboProcessor(
-        IBeeClient beeClient) : IChunkStreamTurboProcessor
+        IBeeClient beeClient,
+        IChunkCacheService chunkCacheService)
+        : IChunkStreamTurboProcessor
     {
         // Consts.
         private const int WebsocketInternalBufferSize = 1024 * 1024 * 10; //10MB
@@ -142,8 +145,15 @@ namespace Etherna.BeeTurbo.Tools
                 //read chunk payload
                 if (TryReadByteArray(dataQueue, nextChunkSize.Value, out var chunkPayload))
                 {
+                    var chunk = SwarmChunk.BuildFromSpanAndData(chunkPayload);
+                    
                     using var memoryStream = new MemoryStream(chunkPayload);
                     memoryStream.Position = 0;
+                    
+                    
+                    
+                    chunkCacheService.ChunksBucket.
+                    
                     await beeClient.UploadChunkAsync(batchId, memoryStream, tagId: tagId);
                     nextChunkSize = null;
                 }
