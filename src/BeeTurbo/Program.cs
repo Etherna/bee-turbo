@@ -13,8 +13,10 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Etherna.BeeNet;
+using Etherna.BeeNet.Hashing.Store;
 using Etherna.BeeTurbo.Domain;
 using Etherna.BeeTurbo.Handlers;
+using Etherna.BeeTurbo.Options;
 using Etherna.BeeTurbo.Persistence;
 using Etherna.BeeTurbo.Tools;
 using Etherna.MongODM;
@@ -116,8 +118,15 @@ namespace Etherna.BeeTurbo
             services.AddHttpForwarder();
             
             // Add request handlers.
-            services.AddSingleton<IBzzHandler, BzzHandler>();
-            services.AddSingleton<IStreamTurboHandler, StreamTurboHandler>();
+            services.AddScoped<IBzzHandler, BzzHandler>();
+            services.AddScoped<IChunksHandler, ChunksHandler>();
+            services.AddScoped<IStreamTurboHandler, StreamTurboHandler>();
+            
+            // Configure options.
+            services.Configure<ForwarderOptions>(options =>
+            {
+                options.BeeUrl = beeUrl;
+            });
             
             // Configure persistence.
             services.AddMongODMWithHangfire(configureHangfireOptions: options =>
@@ -143,7 +152,7 @@ namespace Etherna.BeeTurbo
             // Singleton services.
             services.AddSingleton<IBeeClient>(_ => new BeeClient(new Uri(beeUrl, UriKind.Absolute)));
             services.AddSingleton<IChunkStreamTurboProcessor, ChunkStreamTurboProcessor>();
-            services.AddSingleton<DbRepositoryChunkStore>();
+            services.AddSingleton<IChunkStore, DbChunkStore>();
         }
 
         [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope")]
@@ -157,7 +166,10 @@ namespace Etherna.BeeTurbo
 
             // Configure endpoint mapping
             app.Map("/bzz/{*address}", (HttpContext httpContext, string address, IBzzHandler handler) =>
-                handler.HandleAsync(httpContext, address, beeUrl));
+                handler.HandleAsync(httpContext, address));
+
+            app.Map("/chunks/{*hash}", (HttpContext httpContext, string hash, IChunksHandler handler) =>
+                handler.HandleAsync(httpContext, hash));
             
             app.Map("/chunks/stream-turbo", (HttpContext httpContext, IStreamTurboHandler handler) =>
                 handler.HandleAsync(httpContext));

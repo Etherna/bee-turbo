@@ -22,7 +22,7 @@ using System.Threading.Tasks;
 namespace Etherna.BeeTurbo.Tools
 {
     [SuppressMessage("Design", "CA1031:Do not catch general exception types")]
-    internal sealed class DbRepositoryChunkStore(
+    internal sealed class DbChunkStore(
         IChunkDbContext dbContext)
         : IChunkStore
     {

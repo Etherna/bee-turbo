@@ -13,14 +13,12 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Microsoft.AspNetCore.Http;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
 namespace Etherna.BeeTurbo.Handlers
 {
-    [SuppressMessage("Design", "CA1054:URI-like parameters should not be strings")]
-    public interface IBzzHandler
+    public interface IChunksHandler
     {
-        Task<IResult> HandleAsync(HttpContext httpContext, string address);
+        Task<IResult> HandleAsync(HttpContext httpContext, string hash);
     }
 }
