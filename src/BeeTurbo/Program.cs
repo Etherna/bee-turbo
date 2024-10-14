@@ -142,11 +142,11 @@ namespace Etherna.BeeTurbo
                         }
                     };
                 })
-                .AddDbContext<IChunkDbContext, ChunkDbContext>(_ => new ChunkDbContext(),
+                .AddDbContext<IBeehiveDbContext, BeehiveDbContext>(_ => new BeehiveDbContext(),
                     options =>
                     {
-                        options.ConnectionString = config["ConnectionStrings:ChunkDb"] ??
-                                                   throw new ArgumentException("ChunkCacheDb connection string is not defined");
+                        options.ConnectionString = config["ConnectionStrings:BeehiveDb"] ??
+                                                   throw new ArgumentException("BeehiveDb connection string is not defined");
                     });
 
             // Singleton services.

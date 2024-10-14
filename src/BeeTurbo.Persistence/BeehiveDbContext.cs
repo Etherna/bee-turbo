@@ -26,7 +26,7 @@ using System.Reflection;
 
 namespace Etherna.BeeTurbo.Persistence
 {
-    public class ChunkDbContext : DbContext, IChunkDbContext
+    public class BeehiveDbContext : DbContext, IBeehiveDbContext
     {
         // Consts.
         private const string ModelMapsNamespace = "Etherna.BeeTurbo.Persistence.ModelMaps";
@@ -55,7 +55,7 @@ namespace Etherna.BeeTurbo.Persistence
         
         //other properties
         protected override IEnumerable<IModelMapsCollector> ModelMapsCollectors =>
-            from t in typeof(ChunkDbContext).GetTypeInfo().Assembly.GetTypes()
+            from t in typeof(BeehiveDbContext).GetTypeInfo().Assembly.GetTypes()
             where t.IsClass && t.Namespace == ModelMapsNamespace
             where t.GetInterfaces().Contains(typeof(IModelMapsCollector))
             select Activator.CreateInstance(t) as IModelMapsCollector;

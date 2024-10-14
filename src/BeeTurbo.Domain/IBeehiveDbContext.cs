@@ -19,7 +19,7 @@ using Etherna.MongODM.Core.Repositories;
 
 namespace Etherna.BeeTurbo.Domain
 {
-    public interface IChunkDbContext : IDbContext
+    public interface IBeehiveDbContext : IDbContext
     {
         public IRepository<UploadedChunkRef, string> ChunkPushQueue { get; }
         public GridFSBucket ChunksBucket { get; }

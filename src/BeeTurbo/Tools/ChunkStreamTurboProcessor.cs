@@ -29,7 +29,7 @@ namespace Etherna.BeeTurbo.Tools
 {
     public class ChunkStreamTurboProcessor(
         // IBeeClient beeClient,
-        IChunkDbContext chunkDbContext)
+        IBeehiveDbContext dbContext)
         : IChunkStreamTurboProcessor
     {
         // Consts.
@@ -165,8 +165,8 @@ namespace Etherna.BeeTurbo.Tools
                         hasher);
                     var chunkRef = new UploadedChunkRef(hash, batchId);
 
-                    await chunkDbContext.ChunksBucket.UploadFromBytesAsync(hash.ToString(), chunkPayload);
-                    await chunkDbContext.ChunkPushQueue.CreateAsync(chunkRef);
+                    await dbContext.ChunksBucket.UploadFromBytesAsync(hash.ToString(), chunkPayload);
+                    await dbContext.ChunkPushQueue.CreateAsync(chunkRef);
                     
                     nextChunkSize = null;
                 }

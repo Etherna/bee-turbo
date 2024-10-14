@@ -23,7 +23,7 @@ namespace Etherna.BeeTurbo.Tools
 {
     [SuppressMessage("Design", "CA1031:Do not catch general exception types")]
     internal sealed class DbChunkStore(
-        IChunkDbContext dbContext)
+        IBeehiveDbContext dbContext)
         : IChunkStore
     {
         public async Task<SwarmChunk> GetAsync(SwarmHash hash, SwarmHash? rootHash)
