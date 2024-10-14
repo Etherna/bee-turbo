@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>Etherna.BeeTurbo.Domain</RootNamespace>
+
+    <Authors>Etherna SA</Authors>
+
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Nullable>enable</Nullable>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisMode>AllEnabledByDefault</AnalysisMode>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Bee.Net.Core" Version="0.4.0-alpha.59" />
+    <PackageReference Include="Etherna.MongoDB.Driver.GridFS" Version="2.29.0" />
+    <PackageReference Include="MongODM.Core" Version="0.24.0" />
+  </ItemGroup>
+
+</Project>

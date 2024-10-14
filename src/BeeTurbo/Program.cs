@@ -13,8 +13,16 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Etherna.BeeNet;
-using Etherna.BeeNet.Models;
+using Etherna.BeeNet.Hashing.Store;
+using Etherna.BeeTurbo.Domain;
+using Etherna.BeeTurbo.Handlers;
+using Etherna.BeeTurbo.Options;
+using Etherna.BeeTurbo.Persistence;
 using Etherna.BeeTurbo.Tools;
+using Etherna.MongODM;
+using Hangfire.Mongo;
+using Hangfire.Mongo.Migration.Strategies;
+using Hangfire.Mongo.Migration.Strategies.Backup;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -104,12 +112,47 @@ namespace Etherna.BeeTurbo
         private static void ConfigureServices(WebApplicationBuilder builder, string beeUrl)
         {
             var services = builder.Services;
+            var config = builder.Configuration;
 
+            // Add services.
             services.AddHttpForwarder();
+            
+            // Add request handlers.
+            services.AddScoped<IBzzHandler, BzzHandler>();
+            services.AddScoped<IChunksHandler, ChunksHandler>();
+            services.AddScoped<IStreamTurboHandler, StreamTurboHandler>();
+            
+            // Configure options.
+            services.Configure<ForwarderOptions>(options =>
+            {
+                options.BeeUrl = beeUrl;
+            });
+            
+            // Configure persistence.
+            services.AddMongODMWithHangfire(configureHangfireOptions: options =>
+                {
+                    options.ConnectionString = config["ConnectionStrings:HangfireDb"] ??
+                                               throw new ArgumentException("Hangfire connection string is not defined");
+                    options.StorageOptions = new MongoStorageOptions
+                    {
+                        MigrationOptions = new MongoMigrationOptions //don't remove, could throw exception
+                        {
+                            MigrationStrategy = new MigrateMongoMigrationStrategy(),
+                            BackupStrategy = new CollectionMongoBackupStrategy()
+                        }
+                    };
+                })
+                .AddDbContext<IBeehiveDbContext, BeehiveDbContext>(_ => new BeehiveDbContext(),
+                    options =>
+                    {
+                        options.ConnectionString = config["ConnectionStrings:BeehiveDb"] ??
+                                                   throw new ArgumentException("BeehiveDb connection string is not defined");
+                    });
 
             // Singleton services.
             services.AddSingleton<IBeeClient>(_ => new BeeClient(new Uri(beeUrl, UriKind.Absolute)));
             services.AddSingleton<IChunkStreamTurboProcessor, ChunkStreamTurboProcessor>();
+            services.AddSingleton<IChunkStore, DbChunkStore>();
         }
 
         [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope")]
@@ -122,31 +165,15 @@ namespace Etherna.BeeTurbo
             });
 
             // Configure endpoint mapping
-            app.Map("/chunks/stream-turbo", async (HttpContext httpContext, IChunkStreamTurboProcessor processer) =>
-            {
-                if (httpContext.WebSockets.IsWebSocketRequest)
-                {
-                    // Get headers.
-                    httpContext.Request.Headers.TryGetValue(SwarmHttpConsts.SwarmPostageBatchId, out var batchIdHeaderValue);
-                    httpContext.Request.Headers.TryGetValue(SwarmHttpConsts.SwarmTag, out var tagIdHeaderValue);
-                    var batchId = PostageBatchId.FromString(batchIdHeaderValue.Single()!);
-                    var tagIdStr = tagIdHeaderValue.SingleOrDefault();
-                    TagId? tagId = tagIdStr is null ? null : new TagId(ulong.Parse(tagIdStr));
-                    
-                    // Get websocket.
-                    var webSocket = await httpContext.WebSockets.AcceptWebSocketAsync();
-                    
-                    await processer.HandleWebSocketConnection(
-                        batchId,
-                        tagId,
-                        webSocket);
-                }
-                else
-                {
-                    httpContext.Response.StatusCode = 400;
-                    await httpContext.Response.WriteAsync("Expected a WebSocket request");
-                }
-            });
+            app.Map("/bzz/{*address}", (HttpContext httpContext, string address, IBzzHandler handler) =>
+                handler.HandleAsync(httpContext, address));
+
+            app.Map("/chunks/{*hash}", (HttpContext httpContext, string hash, IChunksHandler handler) =>
+                handler.HandleAsync(httpContext, hash));
+            
+            app.Map("/chunks/stream-turbo", (HttpContext httpContext, IStreamTurboHandler handler) =>
+                handler.HandleAsync(httpContext));
+            
             app.MapForwarder("/{**catch-all}", beeUrl);
         }
     }
