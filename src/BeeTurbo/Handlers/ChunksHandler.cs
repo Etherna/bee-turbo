@@ -13,57 +13,41 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Etherna.BeeNet.Hashing.Store;
-using Etherna.BeeNet.Manifest;
 using Etherna.BeeNet.Models;
 using Etherna.BeeTurbo.Options;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
-using System.Threading;
 using System.Threading.Tasks;
 using Yarp.ReverseProxy.Forwarder;
 
 namespace Etherna.BeeTurbo.Handlers
 {
-    internal sealed class BzzHandler(
+    internal sealed class ChunksHandler(
         IChunkStore chunkStore,
         IHttpForwarder forwarder,
         IOptions<ForwarderOptions> options)
-        : IBzzHandler
+        : IChunksHandler
     {
         // Fields.
         private readonly ForwarderOptions options = options.Value;
 
         // Methods.
         [SuppressMessage("Design", "CA1031:Do not catch general exception types")]
-        public async Task<IResult> HandleAsync(HttpContext httpContext, string address)
+        public async Task<IResult> HandleAsync(HttpContext httpContext, string hash)
         {
             if (httpContext.Request.Method == "GET")
             {
                 try
                 {
-                    var swarmAddress = SwarmAddress.FromString(address);
+                    var swarmHash = SwarmHash.FromString(hash);
+                    var chunk = await chunkStore.GetAsync(swarmHash, null);
 
-                    var chunkJoiner = new ChunkJoiner(chunkStore);
-
-                    var rootManifest = new ReferencedMantarayManifest(
-                        chunkStore,
-                        swarmAddress.Hash);
-
-                    var chunkReference = await rootManifest.ResolveAddressToChunkReferenceAsync(swarmAddress.Path)
-                        .ConfigureAwait(false);
-                    var metadata = await rootManifest.GetResourceMetadataAsync(swarmAddress);
-
-                    var dataStream = await chunkJoiner.GetJoinedChunkDataAsync(
-                        chunkReference,
-                        null,
-                        CancellationToken.None).ConfigureAwait(false);
-
-                    metadata.TryGetValue("Content-Type", out var contentType);
-                    metadata.TryGetValue("Filename", out var fileName);
-
-                    return Results.File(dataStream, contentType, fileName);
+                    return Results.File(
+                        chunk.GetSpanAndData(),
+                        "application/octet-stream",
+                        hash);
                 }
                 catch { } //proceed with forward on any error
             }

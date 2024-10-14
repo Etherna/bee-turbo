@@ -12,15 +12,13 @@
 // You should have received a copy of the GNU Affero General Public License along with BeeTurbo.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Microsoft.AspNetCore.Http;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading.Tasks;
 
-namespace Etherna.BeeTurbo.Handlers
+namespace Etherna.BeeTurbo.Options
 {
-    [SuppressMessage("Design", "CA1054:URI-like parameters should not be strings")]
-    public interface IBzzHandler
+    public class ForwarderOptions
     {
-        Task<IResult> HandleAsync(HttpContext httpContext, string address);
+        [SuppressMessage("Design", "CA1056:URI-like properties should not be strings")]
+        public string BeeUrl { get; set; } = default!;
     }
 }
