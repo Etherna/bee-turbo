@@ -168,6 +168,8 @@ namespace Etherna.BeeTurbo
             app.Map("/bzz/{*address}", (HttpContext httpContext, string address, IBzzHandler handler) =>
                 handler.HandleAsync(httpContext, address));
 
+            app.MapForwarder("/chunks/stream", beeUrl);
+
             app.Map("/chunks/{*hash}", (HttpContext httpContext, string hash, IChunksHandler handler) =>
                 handler.HandleAsync(httpContext, hash));
             
