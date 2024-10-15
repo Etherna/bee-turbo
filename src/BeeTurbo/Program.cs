@@ -119,8 +119,8 @@ namespace Etherna.BeeTurbo
             
             // Add request handlers.
             services.AddScoped<IBzzHandler, BzzHandler>();
+            services.AddScoped<IChunksBulkUploadHandler, ChunksBulkUploadHandler>();
             services.AddScoped<IChunksHandler, ChunksHandler>();
-            services.AddScoped<IStreamTurboHandler, StreamTurboHandler>();
             
             // Configure options.
             services.Configure<ForwarderOptions>(options =>
@@ -151,7 +151,6 @@ namespace Etherna.BeeTurbo
 
             // Singleton services.
             services.AddSingleton<IBeeClient>(_ => new BeeClient(new Uri(beeUrl, UriKind.Absolute)));
-            services.AddSingleton<IChunkStreamTurboProcessor, ChunkStreamTurboProcessor>();
             services.AddSingleton<IChunkStore, DbChunkStore>();
         }
 
@@ -168,10 +167,12 @@ namespace Etherna.BeeTurbo
             app.Map("/bzz/{*address}", (HttpContext httpContext, string address, IBzzHandler handler) =>
                 handler.HandleAsync(httpContext, address));
 
+            app.MapForwarder("/chunks/stream", beeUrl);
+
             app.Map("/chunks/{*hash}", (HttpContext httpContext, string hash, IChunksHandler handler) =>
                 handler.HandleAsync(httpContext, hash));
             
-            app.Map("/chunks/stream-turbo", (HttpContext httpContext, IStreamTurboHandler handler) =>
+            app.Map("/chunks/bulk-upload", (HttpContext httpContext, IChunksBulkUploadHandler handler) =>
                 handler.HandleAsync(httpContext));
             
             app.MapForwarder("/{**catch-all}", beeUrl);
