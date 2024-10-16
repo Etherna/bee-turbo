@@ -27,6 +27,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Exceptions;
 using Serilog.Sinks.Elasticsearch;
@@ -115,6 +116,7 @@ namespace Etherna.BeeTurbo
             var config = builder.Configuration;
 
             // Add services.
+            services.AddCors();
             services.AddHttpForwarder();
             
             // Add request handlers.
@@ -157,6 +159,26 @@ namespace Etherna.BeeTurbo
         [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope")]
         private static void ConfigureApplication(WebApplication app, string beeUrl)
         {
+            var env = app.Environment;
+
+            app.UseCors(builder =>
+            {
+                if (env.IsDevelopment())
+                {
+                    builder.SetIsOriginAllowed(_ => true)
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials();
+                }
+                else
+                {
+                    builder.WithOrigins("https://etherna.io")
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials();
+                }
+            });
+            
             app.UseRouting();
             app.UseWebSockets(new WebSocketOptions
             {
