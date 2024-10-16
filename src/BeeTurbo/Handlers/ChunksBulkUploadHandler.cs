@@ -65,6 +65,12 @@ namespace Etherna.BeeTurbo.Handlers
                             chunkPayload[SwarmChunk.SpanSize..].ToArray(),
                             hasher);
                         var chunkRef = new UploadedChunkRef(hash, batchId);
+                        
+                        //read check hash
+                        var checkHash = ReadSwarmHash(payload.AsSpan()[i..(i + SwarmHash.HashSize)]);
+                        i += SwarmHash.HashSize;
+                        if (checkHash != hash)
+                            throw new InvalidDataException("Invalid hash with provided data");
 
                         await dbContext.ChunksBucket.UploadFromBytesAsync(hash.ToString(), chunkPayload);
                         await dbContext.ChunkPushQueue.CreateAsync(chunkRef);
@@ -78,13 +84,24 @@ namespace Etherna.BeeTurbo.Handlers
         }
         
         // Helpers.
+        private static SwarmHash ReadSwarmHash(Span<byte> payload)
+        {
+            if (payload.Length != SwarmHash.HashSize)
+                throw new ArgumentOutOfRangeException(nameof(payload));
+            
+            var valueByteArray = new byte[SwarmHash.HashSize];
+            for (int i = 0; i < valueByteArray.Length; i++)
+                valueByteArray[i] = payload[i];
+            return SwarmHash.FromByteArray(valueByteArray);
+        }
+        
         private static ushort ReadUshort(Span<byte> payload)
         {
             if (payload.Length != sizeof(ushort))
                 throw new ArgumentOutOfRangeException(nameof(payload));
             
             var valueByteArray = new byte[sizeof(ushort)];
-            for (int i = 0; i < sizeof(ushort); i++)
+            for (int i = 0; i < valueByteArray.Length; i++)
                 valueByteArray[i] = payload[i];
             return BitConverter.ToUInt16(valueByteArray);
         }
