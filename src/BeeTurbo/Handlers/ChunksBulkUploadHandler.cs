@@ -40,9 +40,11 @@ namespace Etherna.BeeTurbo.Handlers
                 try
                 {
                     // Get headers.
-                    httpContext.Request.Headers.TryGetValue(SwarmHttpConsts.SwarmPostageBatchId, out var batchIdHeaderValue);
+                    httpContext.Request.Headers.TryGetValue(
+                        SwarmHttpConsts.SwarmPostageBatchId,
+                        out var batchIdHeaderValue);
                     var batchId = PostageBatchId.FromString(batchIdHeaderValue.Single()!);
-                    
+
                     // Consume data from request.
                     await using var memoryStream = new MemoryStream();
                     await httpContext.Request.Body.CopyToAsync(memoryStream);
@@ -65,7 +67,7 @@ namespace Etherna.BeeTurbo.Handlers
                             chunkPayload[SwarmChunk.SpanSize..].ToArray(),
                             hasher);
                         var chunkRef = new UploadedChunkRef(hash, batchId);
-                        
+
                         //read check hash
                         var checkHash = ReadSwarmHash(payload.AsSpan()[i..(i + SwarmHash.HashSize)]);
                         i += SwarmHash.HashSize;
@@ -75,11 +77,14 @@ namespace Etherna.BeeTurbo.Handlers
                         await dbContext.ChunksBucket.UploadFromBytesAsync(hash.ToString(), chunkPayload);
                         await dbContext.ChunkPushQueue.CreateAsync(chunkRef);
                     }
-                    
+
                     // Reply.
                     httpContext.Response.StatusCode = StatusCodes.Status201Created;
                 }
-                catch { }
+                catch(InvalidDataException)
+                {
+                    httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
+                }
             }
         }
         
