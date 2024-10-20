@@ -19,6 +19,7 @@ using Etherna.BeeTurbo.Domain;
 using Etherna.BeeTurbo.Domain.Models;
 using Microsoft.AspNetCore.Http;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -51,6 +52,8 @@ namespace Etherna.BeeTurbo.Handlers
                     var payload = memoryStream.ToArray();
 
                     var hasher = new Hasher();
+                    List<Chunk> chunks = [];
+                    List<UploadedChunkRef> chunkRefs = [];
                     for (int i = 0; i < payload.Length;)
                     {
                         //read chunk size
@@ -74,9 +77,13 @@ namespace Etherna.BeeTurbo.Handlers
                         if (checkHash != hash)
                             throw new InvalidDataException("Invalid hash with provided data");
 
-                        await dbContext.ChunksBucket.UploadFromBytesAsync(hash.ToString(), chunkPayload);
-                        await dbContext.ChunkPushQueue.CreateAsync(chunkRef);
+                        chunks.Add(new Chunk(hash, chunkPayload));
+                        chunkRefs.Add(chunkRef);
                     }
+                    
+                    // Push data to db.
+                    await dbContext.Chunks.CreateAsync(chunks);
+                    await dbContext.ChunkPushQueue.CreateAsync(chunkRefs);
 
                     // Reply.
                     httpContext.Response.StatusCode = StatusCodes.Status201Created;

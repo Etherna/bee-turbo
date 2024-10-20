@@ -15,8 +15,10 @@
 using Etherna.BeeNet.Hashing.Store;
 using Etherna.BeeNet.Models;
 using Etherna.BeeTurbo.Domain;
+using Etherna.BeeTurbo.Domain.Models;
 using Etherna.MongODM.Core.Utility;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Etherna.BeeTurbo.Tools
@@ -30,7 +32,11 @@ namespace Etherna.BeeTurbo.Tools
         {
             using var dbExecContextHandler = new DbExecutionContextHandler(dbContext);
 
-            var payload = await dbContext.ChunksBucket.DownloadAsBytesByNameAsync(hash.ToString());
+            var chunk = await dbContext.Chunks.TryFindOneAsync(c => c.Hash == hash);
+            byte[]? payload = null;
+            if (chunk is not null)
+                payload = chunk.Payload.ToArray();
+            payload ??= await dbContext.ChunksBucket.DownloadAsBytesByNameAsync(hash.ToString());
             
             return SwarmChunk.BuildFromSpanAndData(hash, payload);
         }
@@ -51,7 +57,8 @@ namespace Etherna.BeeTurbo.Tools
         {
             try
             {
-                await dbContext.ChunksBucket.UploadFromBytesAsync(chunk.Hash.ToString(), chunk.GetSpanAndData());
+                var domainChunk = new Chunk(chunk.Hash, chunk.GetSpanAndData());
+                await dbContext.Chunks.CreateAsync(domainChunk);
                 return true;
             }
             catch
