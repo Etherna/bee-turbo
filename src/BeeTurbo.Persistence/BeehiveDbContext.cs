@@ -39,12 +39,13 @@ namespace Etherna.BeeTurbo.Persistence
         //repositories
         public IRepository<UploadedChunkRef, string> ChunkPushQueue { get; } =
             new Repository<UploadedChunkRef, string>("chunkPushQueue");
-        public IRepository<Chunk, SwarmHash> Chunks { get; } =
-            new Repository<Chunk, SwarmHash>(new RepositoryOptions<Chunk>("chunks")
+        public IRepository<Chunk, string> Chunks { get; } =
+            new Repository<Chunk, string>(new RepositoryOptions<Chunk>("chunks")
             {
                 IndexBuilders =
                 [
-                    (Builders<Chunk>.IndexKeys.Ascending(c => c.CreationDateTime), new CreateIndexOptions<Chunk>())
+                    (Builders<Chunk>.IndexKeys.Ascending(c => c.CreationDateTime), new CreateIndexOptions<Chunk>()),
+                    (Builders<Chunk>.IndexKeys.Ascending(c => c.Hash), new CreateIndexOptions<Chunk> { Unique = true })
                 ]
             });
         public GridFSBucket ChunksBucket

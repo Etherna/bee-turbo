@@ -32,7 +32,7 @@ namespace Etherna.BeeTurbo.Tools
         {
             using var dbExecContextHandler = new DbExecutionContextHandler(dbContext);
 
-            var chunk = await dbContext.Chunks.TryFindOneAsync(hash);
+            var chunk = await dbContext.Chunks.TryFindOneAsync(c => c.Hash == hash);
             byte[]? payload = null;
             if (chunk is not null)
                 payload = chunk.Payload.ToArray();

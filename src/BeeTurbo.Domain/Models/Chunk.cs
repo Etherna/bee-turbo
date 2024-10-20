@@ -17,18 +17,20 @@ using System.Collections.Generic;
 
 namespace Etherna.BeeTurbo.Domain.Models
 {
-    public class Chunk : EntityModelBase<SwarmHash>
+    public class Chunk : EntityModelBase<string>
     {
         // Constructors.
         public Chunk(SwarmHash hash, byte[] payload)
         {
-            Id = hash;
+            Hash = hash;
             Payload = payload.AsReadOnly();
         }
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         public Chunk() { }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
-        public virtual IReadOnlyCollection<byte> Payload { get; set; }
+        // Properties.
+        public virtual SwarmHash Hash { get; protected set; }
+        public virtual IReadOnlyCollection<byte> Payload { get; protected set; }
     }
 }

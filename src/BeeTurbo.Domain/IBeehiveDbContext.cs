@@ -12,7 +12,6 @@
 // You should have received a copy of the GNU Affero General Public License along with BeeTurbo.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.BeeNet.Models;
 using Etherna.BeeTurbo.Domain.Models;
 using Etherna.MongoDB.Driver.GridFS;
 using Etherna.MongODM.Core;
@@ -23,7 +22,7 @@ namespace Etherna.BeeTurbo.Domain
     public interface IBeehiveDbContext : IDbContext
     {
         IRepository<UploadedChunkRef, string> ChunkPushQueue { get; }
-        IRepository<Chunk, SwarmHash> Chunks { get; }
+        IRepository<Chunk, string> Chunks { get; }
         GridFSBucket ChunksBucket { get; }
     }
 }
