@@ -12,6 +12,7 @@
 // You should have received a copy of the GNU Affero General Public License along with BeeTurbo.
 // If not, see <https://www.gnu.org/licenses/>.
 
+using Etherna.BeeNet.Models;
 using Etherna.BeeTurbo.Domain;
 using Etherna.BeeTurbo.Domain.Models;
 using Etherna.MongoDB.Driver;
@@ -38,6 +39,14 @@ namespace Etherna.BeeTurbo.Persistence
         //repositories
         public IRepository<UploadedChunkRef, string> ChunkPushQueue { get; } =
             new Repository<UploadedChunkRef, string>("chunkPushQueue");
+        public IRepository<Chunk, SwarmHash> Chunks { get; } =
+            new Repository<Chunk, SwarmHash>(new RepositoryOptions<Chunk>("chunks")
+            {
+                IndexBuilders =
+                [
+                    (Builders<Chunk>.IndexKeys.Ascending(c => c.CreationDateTime), new CreateIndexOptions<Chunk>())
+                ]
+            });
         public GridFSBucket ChunksBucket
         {
             get

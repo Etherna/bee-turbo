@@ -12,18 +12,18 @@
 // You should have received a copy of the GNU Affero General Public License along with BeeTurbo.
 // If not, see <https://www.gnu.org/licenses/>.
 
-using Etherna.BeeNet.Models;
 using Etherna.BeeTurbo.Domain.Models;
-using Etherna.MongoDB.Driver.GridFS;
 using Etherna.MongODM.Core;
-using Etherna.MongODM.Core.Repositories;
+using Etherna.MongODM.Core.Serialization;
 
-namespace Etherna.BeeTurbo.Domain
+namespace Etherna.BeeTurbo.Persistence.ModelMaps
 {
-    public interface IBeehiveDbContext : IDbContext
+    internal sealed class ChunkMap : IModelMapsCollector
     {
-        IRepository<UploadedChunkRef, string> ChunkPushQueue { get; }
-        IRepository<Chunk, SwarmHash> Chunks { get; }
-        GridFSBucket ChunksBucket { get; }
+        public void Register(IDbContext dbContext)
+        {
+            dbContext.MapRegistry.AddModelMap<Chunk>( //v0.2.4
+                "06aaf593-07af-4fca-99a9-bdc3718547d8");
+        }
     }
 }

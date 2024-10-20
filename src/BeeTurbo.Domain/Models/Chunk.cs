@@ -13,17 +13,22 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Etherna.BeeNet.Models;
-using Etherna.BeeTurbo.Domain.Models;
-using Etherna.MongoDB.Driver.GridFS;
-using Etherna.MongODM.Core;
-using Etherna.MongODM.Core.Repositories;
+using System.Collections.Generic;
 
-namespace Etherna.BeeTurbo.Domain
+namespace Etherna.BeeTurbo.Domain.Models
 {
-    public interface IBeehiveDbContext : IDbContext
+    public class Chunk : EntityModelBase<SwarmHash>
     {
-        IRepository<UploadedChunkRef, string> ChunkPushQueue { get; }
-        IRepository<Chunk, SwarmHash> Chunks { get; }
-        GridFSBucket ChunksBucket { get; }
+        // Constructors.
+        public Chunk(SwarmHash hash, byte[] payload)
+        {
+            Id = hash;
+            Payload = payload.AsReadOnly();
+        }
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        public Chunk() { }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+
+        public virtual IReadOnlyCollection<byte> Payload { get; set; }
     }
 }
