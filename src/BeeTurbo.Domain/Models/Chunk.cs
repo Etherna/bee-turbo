@@ -13,7 +13,7 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Etherna.BeeNet.Models;
-using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Etherna.BeeTurbo.Domain.Models
 {
@@ -23,7 +23,7 @@ namespace Etherna.BeeTurbo.Domain.Models
         public Chunk(SwarmHash hash, byte[] payload)
         {
             Hash = hash;
-            Payload = payload.AsReadOnly();
+            Payload = payload;
         }
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         public Chunk() { }
@@ -31,6 +31,8 @@ namespace Etherna.BeeTurbo.Domain.Models
 
         // Properties.
         public virtual SwarmHash Hash { get; protected set; }
-        public virtual IReadOnlyCollection<byte> Payload { get; protected set; }
+        
+        [SuppressMessage("Performance", "CA1819:Properties should not return arrays")]
+        public virtual byte[] Payload { get; protected set; }
     }
 }

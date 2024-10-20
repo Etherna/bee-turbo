@@ -13,6 +13,7 @@
 // If not, see <https://www.gnu.org/licenses/>.
 
 using Etherna.BeeTurbo.Domain.Models;
+using Etherna.MongoDB.Bson.Serialization.Serializers;
 using Etherna.MongODM.Core;
 using Etherna.MongODM.Core.Serialization;
 
@@ -23,7 +24,12 @@ namespace Etherna.BeeTurbo.Persistence.ModelMaps
         public void Register(IDbContext dbContext)
         {
             dbContext.MapRegistry.AddModelMap<Chunk>( //v0.2.4
-                "06aaf593-07af-4fca-99a9-bdc3718547d8");
+                "06aaf593-07af-4fca-99a9-bdc3718547d8",
+                mm =>
+                {
+                    mm.AutoMap();
+                    mm.MapProperty(c => c.Payload).SetSerializer(ByteArraySerializer.Instance);
+                });
         }
     }
 }

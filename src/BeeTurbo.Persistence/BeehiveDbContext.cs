@@ -45,21 +45,19 @@ namespace Etherna.BeeTurbo.Persistence
                 IndexBuilders =
                 [
                     (Builders<Chunk>.IndexKeys.Ascending(c => c.CreationDateTime), new CreateIndexOptions<Chunk>()),
-                    (Builders<Chunk>.IndexKeys.Ascending(c => c.Hash), new CreateIndexOptions<Chunk> { Unique = true })
+                    (Builders<Chunk>.IndexKeys.Ascending(c => c.Hash), new CreateIndexOptions<Chunk>())
                 ]
             });
         public GridFSBucket ChunksBucket
         {
             get
             {
-                if (_chunksBucket == null)
-                    _chunksBucket = new GridFSBucket(Database, new GridFSBucketOptions
-                    {
-                        BucketName = "chunks",
-                        WriteConcern = WriteConcern.WMajority,
-                        ReadPreference = ReadPreference.Secondary
-                    });
-                return _chunksBucket;
+                return _chunksBucket ??= new GridFSBucket(Database, new GridFSBucketOptions
+                {
+                    BucketName = "chunks",
+                    WriteConcern = WriteConcern.WMajority,
+                    ReadPreference = ReadPreference.Secondary
+                });
             }
         }
         

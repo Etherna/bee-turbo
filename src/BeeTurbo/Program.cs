@@ -112,8 +112,8 @@ namespace Etherna.BeeTurbo
         
         private static void ConfigureServices(WebApplicationBuilder builder, string beeUrl)
         {
-            var services = builder.Services;
             var config = builder.Configuration;
+            var services = builder.Services;
 
             // Add services.
             services.AddCors();
@@ -198,6 +198,12 @@ namespace Etherna.BeeTurbo
                 handler.HandleAsync(httpContext));
             
             app.MapForwarder("/{**catch-all}", beeUrl);
+            
+            // Internal features mapping
+            app.Map("db/migrate", (IBeehiveDbContext dbContext) =>
+            {
+                dbContext.Chunks.BuildIndexesAsync();
+            });
         }
     }
 }
