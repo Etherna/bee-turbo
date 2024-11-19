@@ -186,12 +186,12 @@ namespace Etherna.BeeTurbo
             });
 
             // Configure endpoint mapping
-            app.Map("/bzz/{*address}", (HttpContext httpContext, string address, IBzzHandler handler) =>
+            app.Map("/bzz/{*address:minlength(1)}", (HttpContext httpContext, string address, IBzzHandler handler) =>
                 handler.HandleAsync(httpContext, address));
 
             app.MapForwarder("/chunks/stream", beeUrl);
 
-            app.Map("/chunks/{*hash}", (HttpContext httpContext, string hash, IChunksHandler handler) =>
+            app.Map("/chunks/{*hash:length(64)}", (HttpContext httpContext, string hash, IChunksHandler handler) =>
                 handler.HandleAsync(httpContext, hash));
             
             app.Map("/chunks/bulk-upload", (HttpContext httpContext, IChunksBulkUploadHandler handler) =>
