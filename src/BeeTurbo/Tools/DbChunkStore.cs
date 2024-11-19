@@ -28,7 +28,7 @@ namespace Etherna.BeeTurbo.Tools
         IBeehiveDbContext dbContext)
         : IChunkStore
     {
-        public async Task<SwarmChunk> GetAsync(SwarmHash hash, SwarmHash? rootHash)
+        public async Task<SwarmChunk> GetAsync(SwarmHash hash)
         {
             using var dbExecContextHandler = new DbExecutionContextHandler(dbContext);
 
@@ -41,11 +41,11 @@ namespace Etherna.BeeTurbo.Tools
             return SwarmChunk.BuildFromSpanAndData(hash, payload);
         }
 
-        public async Task<SwarmChunk?> TryGetAsync(SwarmHash hash, SwarmHash? rootHash)
+        public async Task<SwarmChunk?> TryGetAsync(SwarmHash hash)
         {
             try
             {
-                return await GetAsync(hash, rootHash);
+                return await GetAsync(hash);
             }
             catch
             {

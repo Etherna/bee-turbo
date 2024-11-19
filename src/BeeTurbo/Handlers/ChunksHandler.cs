@@ -42,7 +42,7 @@ namespace Etherna.BeeTurbo.Handlers
                 try
                 {
                     var swarmHash = SwarmHash.FromString(hash);
-                    var chunk = await chunkStore.GetAsync(swarmHash, null);
+                    var chunk = await chunkStore.GetAsync(swarmHash);
 
                     return Results.File(
                         chunk.GetSpanAndData(),
